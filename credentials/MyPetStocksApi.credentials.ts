@@ -1,5 +1,6 @@
 import {
 	IAuthenticateGeneric,
+	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
@@ -84,19 +85,29 @@ export class MyPetStocksApi implements ICredentialType {
 		},
 	};
 
-	// 测试凭据是否有效 - 暂时禁用自动测试，因为需要 POST 请求体
-	// test: ICredentialTestRequest = {
-	// 	request: {
-	// 		baseURL: '={{$credentials.baseUrl}}',
-	// 		url: '/api/v1/portal/dashlogin/',
-	// 		method: 'POST',
-	// 		headers: {
-	// 			'Content-Type': 'application/json',
-	// 		},
-	// 		body: {
-	// 			username: '={{$credentials.username}}',
-	// 			password: '={{$credentials.password}}',
-	// 		},
-	// 	},
-	// };
+	// 测试凭据是否有效
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: '={{$credentials.baseUrl}}',
+			url: '/api/v1/portal/dashlogin/',
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: {
+				username: '={{$credentials.username}}',
+				password: '={{$credentials.password}}',
+			},
+		},
+		rules: [
+			{
+				type: 'responseSuccessBody',
+				properties: {
+					key: 'code',
+					value: 0,
+					message: 'Authentication successful',
+				},
+			},
+		],
+	};
 }
