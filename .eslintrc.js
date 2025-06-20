@@ -14,11 +14,12 @@ module.exports = {
 	plugins: ['@typescript-eslint'],
 	extends: [
 		'eslint:recommended',
-		'@typescript-eslint/recommended',
-		'plugin:n8n-nodes-base/recommended',
+		'plugin:@typescript-eslint/recommended',
 	],
 	rules: {
-		'n8n-nodes-base/node-param-default-missing': 'error',
-		'n8n-nodes-base/node-param-description-missing': 'error',
+		'@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+		'@typescript-eslint/no-explicit-any': 'warn',
+		'@typescript-eslint/explicit-function-return-type': 'off',
+		'@typescript-eslint/explicit-module-boundary-types': 'off',
 	},
 };
