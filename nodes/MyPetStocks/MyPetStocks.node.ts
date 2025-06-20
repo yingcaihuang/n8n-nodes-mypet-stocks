@@ -126,7 +126,7 @@ export class MyPetStocks implements INodeType {
 							'myPetStocksApi',
 							{
 								method: 'POST',
-								url: '/api/v1/portal/dashlogin/',
+								url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
 								body: {
 									username: credentials.username,
 									password: credentials.password,
@@ -153,13 +153,23 @@ export class MyPetStocks implements INodeType {
 							pairedItem: { item: i },
 						});
 					} else if (operation === 'testConnection') {
+						// 获取凭据
+						const credentials = await this.getCredentials('myPetStocksApi');
+						if (!credentials) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'No credentials found for MyPet Stocks API',
+								{ itemIndex: i }
+							);
+						}
+
 						// 测试连接 - 这里可以调用一个简单的API端点来验证连接
 						const response = await this.helpers.httpRequestWithAuthentication.call(
 							this,
 							'myPetStocksApi',
 							{
 								method: 'GET',
-								url: '/api/v1/test', // 假设有一个测试端点
+								url: `${credentials.baseUrl}/api/v1/test`, // 假设有一个测试端点
 								json: true,
 							}
 						);
@@ -175,13 +185,23 @@ export class MyPetStocks implements INodeType {
 					}
 				} else if (resource === 'trading') {
 					if (operation === 'getMarketData') {
+						// 获取凭据
+						const credentials = await this.getCredentials('myPetStocksApi');
+						if (!credentials) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'No credentials found for MyPet Stocks API',
+								{ itemIndex: i }
+							);
+						}
+
 						// 这里添加获取市场数据的逻辑
 						const response = await this.helpers.httpRequestWithAuthentication.call(
 							this,
 							'myPetStocksApi',
 							{
 								method: 'GET',
-								url: '/api/v1/market/data', // 假设的市场数据端点
+								url: `${credentials.baseUrl}/api/v1/market/data`, // 假设的市场数据端点
 								json: true,
 							}
 						);
