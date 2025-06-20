@@ -1,0 +1,67 @@
+# Source files
+credentials/
+nodes/
+*.ts
+tsconfig.json
+gulpfile.js
+
+# Development files
+.eslintrc.js
+.prettierrc.js
+test-auth.js
+
+# Documentation (keep README.md)
+USAGE.md
+PROJECT_SUMMARY.md
+
+# Dependencies
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# Build files that shouldn't be published
+src/
+build/
+temp/
