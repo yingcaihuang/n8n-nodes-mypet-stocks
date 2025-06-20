@@ -89,7 +89,7 @@ export class MyPetStocksApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl}}',
-			url: '/api/v1/portal/dashlogin',
+			url: '/api/v1/portal/dashlogin/',
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

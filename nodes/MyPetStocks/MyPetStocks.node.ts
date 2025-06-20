@@ -126,7 +126,7 @@ export class MyPetStocks implements INodeType {
 							'myPetStocksApi',
 							{
 								method: 'POST',
-								url: '/api/v1/portal/dashlogin',
+								url: '/api/v1/portal/dashlogin/',
 								body: {
 									username: credentials.username,
 									password: credentials.password,
