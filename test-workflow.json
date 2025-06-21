@@ -1,0 +1,31 @@
+{
+  "name": "Test MyPet Stocks Quantitative Account",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "quantAccount",
+        "operation": "getAllAccounts",
+        "pageNum": 1,
+        "pageSize": 10
+      },
+      "id": "test-node-1",
+      "name": "MyPet Stocks",
+      "type": "n8n-nodes-mypet-stocks.myPetStocks",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "credentials": {
+        "myPetStocksApi": {
+          "id": "your-credential-id",
+          "name": "MyPet Stocks API"
+        }
+      }
+    }
+  ],
+  "connections": {},
+  "active": false,
+  "settings": {},
+  "versionId": "test-version"
+}
