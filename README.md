@@ -1,5 +1,4 @@
 # n8n-nodes-mypet-stocks
-# n8n-nodes-mypet-stocks
 
 ## 🌟 English Description
 
