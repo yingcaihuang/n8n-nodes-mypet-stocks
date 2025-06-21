@@ -446,6 +446,41 @@ export class MyPetStocks implements INodeType {
 							);
 						}
 
+						// 首先获取认证 token
+						let authToken: string;
+
+						if (credentials.authMethod === 'token' && credentials.token) {
+							// 如果已经有 token，直接使用
+							authToken = `Bearer ${credentials.token}`;
+						} else if (credentials.authMethod === 'credentials') {
+							// 使用用户名密码获取 token
+							const loginResponse = await this.helpers.httpRequest.call(this, {
+								method: 'POST',
+								url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+								body: {
+									username: credentials.username,
+									password: credentials.password,
+								},
+								json: true,
+							});
+
+							if (loginResponse.code !== 0) {
+								throw new NodeOperationError(
+									this.getNode(),
+									`Authentication failed: ${loginResponse.message}`,
+									{ itemIndex: i }
+								);
+							}
+
+							authToken = loginResponse.result.token;
+						} else {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Invalid authentication method. Please use either username/password or token.',
+								{ itemIndex: i }
+							);
+						}
+
 						// 获取查询参数
 						const pageNum = this.getNodeParameter('pageNum', i) as number;
 						const pageSize = this.getNodeParameter('pageSize', i) as number;
@@ -484,16 +519,16 @@ export class MyPetStocks implements INodeType {
 						const queryString = new URLSearchParams(queryParams).toString();
 						const url = `${credentials.baseUrl}/api/v1/portal/stock/tradeOrder/${queryString ? '?' + queryString : ''}`;
 
-						// 发送请求
-						const response = await this.helpers.httpRequestWithAuthentication.call(
-							this,
-							'myPetStocksApi',
-							{
-								method: 'GET',
-								url,
-								json: true,
-							}
-						);
+						// 使用获取的 token 发送请求
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'GET',
+							url,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							json: true,
+						});
 
 						if (response.code !== 0) {
 							throw new NodeOperationError(
@@ -513,6 +548,7 @@ export class MyPetStocks implements INodeType {
 								orders: response.result.results.data,
 								orderInfo: response.result.results.order_info,
 								queryParams: queryParams,
+								authToken: authToken.substring(0, 30) + '...', // 显示部分 token 用于调试
 							},
 							pairedItem: { item: i },
 						});
