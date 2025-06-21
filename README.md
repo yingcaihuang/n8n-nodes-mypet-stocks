@@ -25,6 +25,14 @@ Perfect for financial automation, algorithmic trading systems, and comprehensive
 - **经纪商集成**：通过统一接口连接各种经纪商和交易商
 
 非常适合金融自动化、算法交易系统和全面的交易分析。
+截图
+![image](https://github.com/user-attachments/assets/9fa854fa-05f8-4412-9a52-df4142a6a34b)
+
+![image](https://github.com/user-attachments/assets/cb236d46-0229-4abc-bb2d-1bef2e73479d)
+
+![image](https://github.com/user-attachments/assets/2a612518-ffdd-4361-8120-cf2603bcdf09)
+
+
 
 This is an n8n community node for the MyPet Stocks quantitative trading system with comprehensive account management capabilities.
 
