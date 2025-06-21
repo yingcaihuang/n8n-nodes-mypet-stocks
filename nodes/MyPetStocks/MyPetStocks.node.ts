@@ -116,6 +116,12 @@ export class MyPetStocks implements INodeType {
 						description: 'Get list of available trading accounts',
 						action: 'List trading accounts',
 					},
+					{
+						name: 'Get Account Trading Status',
+						value: 'getAccountTradingStatus',
+						description: 'Get real-time trading status for all accounts',
+						action: 'Get account trading status',
+					},
 				],
 				default: 'getMarketData',
 			},
@@ -429,6 +435,143 @@ export class MyPetStocks implements INodeType {
 						resource: ['trading'],
 						operation: ['getAccountTradingDetails'],
 						scope: ['custom'],
+					},
+				},
+			},
+			// 账户交易实况参数
+			{
+				displayName: 'Page Number',
+				name: 'pageNum',
+				type: 'number',
+				default: 1,
+				description: 'Page number to query',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingStatus'],
+					},
+				},
+			},
+			{
+				displayName: 'Page Size',
+				name: 'pageSize',
+				type: 'number',
+				default: 20,
+				description: 'Number of records per page',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingStatus'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Account',
+				name: 'filterAccountId',
+				type: 'options',
+				default: '',
+				description: 'Filter by specific account (optional)',
+				typeOptions: {
+					loadOptionsMethod: 'getAccounts',
+				},
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingStatus'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Name',
+				name: 'filterName',
+				type: 'string',
+				default: '',
+				description: 'Filter by account name (optional)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingStatus'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Status',
+				name: 'filterStatus',
+				type: 'options',
+				options: [
+					{
+						name: 'All',
+						value: '',
+					},
+					{
+						name: 'Active',
+						value: 'true',
+					},
+					{
+						name: 'Inactive',
+						value: 'false',
+					},
+				],
+				default: '',
+				description: 'Filter by account status (optional)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingStatus'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Account Type',
+				name: 'filterAccountType',
+				type: 'options',
+				options: [
+					{
+						name: 'All',
+						value: '',
+					},
+					{
+						name: 'MT4',
+						value: 'mt4',
+					},
+					{
+						name: 'MT5',
+						value: 'mt5',
+					},
+				],
+				default: '',
+				description: 'Filter by account type (optional)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingStatus'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Account Nature',
+				name: 'filterIsReal',
+				type: 'options',
+				options: [
+					{
+						name: 'All',
+						value: '',
+					},
+					{
+						name: 'Real Account',
+						value: 'true',
+					},
+					{
+						name: 'Demo Account',
+						value: 'false',
+					},
+				],
+				default: '',
+				description: 'Filter by account nature (optional)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingStatus'],
 					},
 				},
 			},
@@ -971,6 +1114,179 @@ export class MyPetStocks implements INodeType {
 										const account = acc as Record<string, unknown>;
 										return !account.isReal;
 									}).length,
+								},
+							} as IDataObject,
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'getAccountTradingStatus') {
+						// 获取凭据和认证
+						const credentials = await this.getCredentials('myPetStocksApi');
+						let authToken: string;
+
+						if (credentials.authMethod === 'token') {
+							authToken = credentials.token as string;
+						} else {
+							// 使用用户名密码获取 token
+							const loginResponse = await this.helpers.httpRequest.call(this, {
+								method: 'POST',
+								url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+								body: {
+									username: credentials.username,
+									password: credentials.password,
+								},
+								json: true,
+							});
+
+							if (loginResponse.code !== 0) {
+								throw new NodeOperationError(
+									this.getNode(),
+									`Authentication failed: ${loginResponse.message}`,
+									{ itemIndex: i }
+								);
+							}
+
+							authToken = loginResponse.result.token;
+						}
+
+						// 获取请求参数
+						const pageNum = this.getNodeParameter('pageNum', i) as number;
+						const pageSize = this.getNodeParameter('pageSize', i) as number;
+						const filterAccountId = this.getNodeParameter('filterAccountId', i) as string;
+						const filterName = this.getNodeParameter('filterName', i) as string;
+						const filterStatus = this.getNodeParameter('filterStatus', i) as string;
+						const filterAccountType = this.getNodeParameter('filterAccountType', i) as string;
+						const filterIsReal = this.getNodeParameter('filterIsReal', i) as string;
+
+						// 构建查询参数
+						const queryParams = new URLSearchParams();
+						if (pageNum) queryParams.append('pageNum', pageNum.toString());
+						if (pageSize) queryParams.append('pageSize', pageSize.toString());
+						if (filterAccountId) queryParams.append('accountId', filterAccountId);
+						if (filterName) queryParams.append('name', filterName);
+						if (filterStatus) queryParams.append('status', filterStatus);
+						if (filterAccountType) queryParams.append('account_type', filterAccountType);
+						if (filterIsReal) queryParams.append('is_real', filterIsReal);
+
+						const queryString = queryParams.toString();
+						const url = `${credentials.baseUrl}/api/v1/portal/stock/accountStat/${queryString ? '?' + queryString : ''}`;
+
+						// 发送请求
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'GET',
+							url: url,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							json: true,
+						});
+
+						if (response.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Query failed: ${response.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						// 格式化账户交易实况数据
+						const accountStats = response.result.results.map((account: unknown) => {
+							const acc = account as Record<string, unknown>;
+							const stat = acc.stat as Record<string, unknown>;
+							const holtStat = stat?.holtStat as Record<string, unknown>;
+
+							return {
+								id: acc.id,
+								username: acc.username,
+								name: acc.name,
+								accountId: acc.accountId,
+								status: acc.status,
+								isReal: acc.is_real,
+								capitalType: acc.capital_type,
+								tradingStats: {
+									// 账户基本信息
+									accountBalance: stat?.accountBalance || 0,
+									accountEquity: stat?.accountEquity || 0,
+									accountMargin: stat?.accountMargin || 0,
+									accountFreeMargin: stat?.accountFreeMargin || 0,
+									floatingProfit: stat?.floatingProfit || 0,
+
+									// 持仓统计
+									totalLots: stat?.totalLots || 0,
+									totalBuyLots: stat?.totalBuyLots || 0,
+									totalSellLots: stat?.totalSellLots || 0,
+									totalBuyProfit: stat?.totalBuyProfit || 0,
+									totalSellProfit: stat?.totalSellProfit || 0,
+
+									// 持仓数量统计
+									holdingStats: {
+										sellCount: holtStat?.sell_count || 0,
+										buyCount: holtStat?.buy_count || 0,
+										total: holtStat?.total || 0,
+									},
+
+									// 其他信息
+									remoteAddr: stat?.remoteAddr,
+									lastUpdateTime: stat?.mod_time,
+									addTime: stat?.add_time,
+								},
+							};
+						});
+
+						// 计算汇总统计
+						const totalBalance = accountStats.reduce((sum: number, acc: unknown) => {
+							const account = acc as Record<string, any>;
+							return sum + (account.tradingStats.accountBalance || 0);
+						}, 0);
+						const totalEquity = accountStats.reduce((sum: number, acc: unknown) => {
+							const account = acc as Record<string, any>;
+							return sum + (account.tradingStats.accountEquity || 0);
+						}, 0);
+						const totalFloatingProfit = accountStats.reduce((sum: number, acc: unknown) => {
+							const account = acc as Record<string, any>;
+							return sum + (account.tradingStats.floatingProfit || 0);
+						}, 0);
+						const totalLots = accountStats.reduce((sum: number, acc: unknown) => {
+							const account = acc as Record<string, any>;
+							return sum + (account.tradingStats.totalLots || 0);
+						}, 0);
+						const activeAccounts = accountStats.filter((acc: unknown) => {
+							const account = acc as Record<string, any>;
+							return account.status;
+						}).length;
+						const realAccounts = accountStats.filter((acc: unknown) => {
+							const account = acc as Record<string, any>;
+							return account.isReal;
+						}).length;
+
+						returnData.push({
+							json: {
+								message: response.message,
+								code: response.code,
+								pagination: {
+									totalCount: response.result.count,
+									currentPage: pageNum,
+									pageSize: pageSize,
+									hasNext: !!response.result.next,
+									hasPrevious: !!response.result.previous,
+								},
+								accounts: accountStats,
+								summary: {
+									totalAccounts: accountStats.length,
+									activeAccounts: activeAccounts,
+									realAccounts: realAccounts,
+									demoAccounts: accountStats.length - realAccounts,
+									totalBalance: totalBalance,
+									totalEquity: totalEquity,
+									totalFloatingProfit: totalFloatingProfit,
+									totalLots: totalLots,
+								},
+								filters: {
+									accountId: filterAccountId || null,
+									name: filterName || null,
+									status: filterStatus || null,
+									accountType: filterAccountType || null,
+									isReal: filterIsReal || null,
 								},
 							} as IDataObject,
 							pairedItem: { item: i },
