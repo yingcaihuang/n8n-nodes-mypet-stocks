@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-mypet-stocks",
-  "version": "1.5.0",
-  "description": "n8n node for MyPet Stocks quantitative trading system with authentication support",
+  "version": "1.6.0",
+  "description": "n8n node for MyPet Stocks quantitative trading system with authentication and quantitative account management support",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
@@ -10,7 +10,11 @@
     "trading",
     "quantitative",
     "finance",
-    "api"
+    "api",
+    "account-management",
+    "mt4",
+    "mt5",
+    "broker"
   ],
   "license": "MIT",
   "homepage": "https://github.com/your-username/n8n-nodes-mypet-stocks#readme",

@@ -52,6 +52,10 @@ export class MyPetStocks implements INodeType {
 						name: 'Trading',
 						value: 'trading',
 					},
+					{
+						name: 'Quantitative Account',
+						value: 'quantAccount',
+					},
 				],
 				default: 'auth',
 			},
@@ -124,6 +128,44 @@ export class MyPetStocks implements INodeType {
 					},
 				],
 				default: 'getMarketData',
+			},
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+					},
+				},
+				options: [
+					{
+						name: 'Get All Accounts',
+						value: 'getAllAccounts',
+						description: 'Get all quantitative accounts',
+						action: 'Get all quantitative accounts',
+					},
+					{
+						name: 'Create Account',
+						value: 'createAccount',
+						description: 'Create a new quantitative account',
+						action: 'Create quantitative account',
+					},
+					{
+						name: 'Update Account',
+						value: 'updateAccount',
+						description: 'Update an existing quantitative account',
+						action: 'Update quantitative account',
+					},
+					{
+						name: 'Delete Account',
+						value: 'deleteAccount',
+						description: 'Delete a quantitative account',
+						action: 'Delete quantitative account',
+					},
+				],
+				default: 'getAllAccounts',
 			},
 			// 订单查询参数
 			{
@@ -575,6 +617,730 @@ export class MyPetStocks implements INodeType {
 					},
 				},
 			},
+			// 量化账户参数配置
+			// 获取所有量化账户的参数
+			{
+				displayName: 'Page Number',
+				name: 'pageNum',
+				type: 'number',
+				default: 1,
+				description: 'Page number to query',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['getAllAccounts'],
+					},
+				},
+			},
+			{
+				displayName: 'Page Size',
+				name: 'pageSize',
+				type: 'number',
+				default: 20,
+				description: 'Number of records per page',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['getAllAccounts'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Name',
+				name: 'name',
+				type: 'string',
+				default: '',
+				description: 'Filter by account name (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['getAllAccounts'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Account ID',
+				name: 'accountId',
+				type: 'string',
+				default: '',
+				description: 'Filter by quantitative account ID (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['getAllAccounts'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Account Type',
+				name: 'account_type',
+				type: 'options',
+				options: [
+					{
+						name: 'All',
+						value: '',
+					},
+					{
+						name: 'MT4',
+						value: 'mt4',
+					},
+					{
+						name: 'MT5',
+						value: 'mt5',
+					},
+				],
+				default: '',
+				description: 'Filter by account type (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['getAllAccounts'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Account Nature',
+				name: 'is_real',
+				type: 'options',
+				options: [
+					{
+						name: 'All',
+						value: '',
+					},
+					{
+						name: 'Real Account',
+						value: 'true',
+					},
+					{
+						name: 'Demo Account',
+						value: 'false',
+					},
+				],
+				default: '',
+				description: 'Filter by account nature (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['getAllAccounts'],
+					},
+				},
+			},
+			{
+				displayName: 'Filter by Status',
+				name: 'status',
+				type: 'options',
+				options: [
+					{
+						name: 'All',
+						value: '',
+					},
+					{
+						name: 'Active',
+						value: 'true',
+					},
+					{
+						name: 'Inactive',
+						value: 'false',
+					},
+				],
+				default: '',
+				description: 'Filter by account status (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['getAllAccounts'],
+					},
+				},
+			},
+			// 创建量化账户的参数
+			{
+				displayName: 'Account Name',
+				name: 'name',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'Name of the quantitative account',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Account ID',
+				name: 'accountId',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'Quantitative account ID',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Account Type',
+				name: 'account_type',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'MT4',
+						value: 'mt4',
+					},
+					{
+						name: 'MT5',
+						value: 'mt5',
+					},
+				],
+				default: 'mt5',
+				description: 'Account type',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Is Real Account',
+				name: 'is_real',
+				type: 'boolean',
+				required: true,
+				default: true,
+				description: 'Whether this is a real account (true) or demo account (false)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Dealer',
+				name: 'dealer',
+				type: 'options',
+				required: true,
+				default: '',
+				description: 'Select the dealer/broker',
+				typeOptions: {
+					loadOptionsMethod: 'getDealers',
+				},
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Server',
+				name: 'server',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'Server name',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Capital Type',
+				name: 'capital_type',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'USD (Dollar)',
+						value: 'usd',
+					},
+					{
+						name: 'Cent',
+						value: 'cent',
+					},
+				],
+				default: 'usd',
+				description: 'Capital type',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Max Leverage',
+				name: 'max_lever',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: '1:2',
+						value: '1:2',
+					},
+					{
+						name: '1:20',
+						value: '1:20',
+					},
+					{
+						name: '1:50',
+						value: '1:50',
+					},
+					{
+						name: '1:100',
+						value: '1:100',
+					},
+					{
+						name: '1:200',
+						value: '1:200',
+					},
+					{
+						name: '1:400',
+						value: '1:400',
+					},
+					{
+						name: '1:500',
+						value: '1:500',
+					},
+					{
+						name: '1:800',
+						value: '1:800',
+					},
+					{
+						name: '1:1000',
+						value: '1:1000',
+					},
+					{
+						name: '1:2000',
+						value: '1:2000',
+					},
+					{
+						name: '1:无限',
+						value: '1:无限',
+					},
+				],
+				default: '1:100',
+				description: 'Maximum leverage',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'View Password',
+				name: 'view_password',
+				type: 'string',
+				default: '',
+				description: 'View password (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Risk',
+				name: 'risk',
+				type: 'number',
+				required: true,
+				default: 100,
+				description: 'Risk value - maximum loss percentage that can be tolerated (not a percentage)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Time Zone',
+				name: 'time_zone',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'UTC',
+						value: 'UTC',
+					},
+					{
+						name: 'Europe/Moscow',
+						value: 'Europe/Moscow',
+					},
+					{
+						name: 'Asia/Shanghai',
+						value: 'Asia/Shanghai',
+					},
+					{
+						name: 'America/New_York',
+						value: 'America/New_York',
+					},
+					{
+						name: 'Asia/Tokyo',
+						value: 'Asia/Tokyo',
+					},
+					{
+						name: 'Africa/Cairo',
+						value: 'Africa/Cairo',
+					},
+					{
+						name: 'America/Los_Angeles',
+						value: 'America/Los_Angeles',
+					},
+				],
+				default: 'UTC',
+				description: 'Time zone',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Status',
+				name: 'status',
+				type: 'boolean',
+				required: true,
+				default: true,
+				description: 'Account status - true (active) or false (inactive)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Note',
+				name: 'note',
+				type: 'string',
+				default: '',
+				description: 'Note (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['createAccount'],
+					},
+				},
+			},
+			// 更新量化账户的参数 - 复用创建账户的所有参数，但添加ID选择
+			{
+				displayName: 'Account to Update',
+				name: 'updateAccountId',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'ID of the quantitative account to update',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Account Name',
+				name: 'name',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'Name of the quantitative account',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Account ID',
+				name: 'accountId',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'Quantitative account ID',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Account Type',
+				name: 'account_type',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'MT4',
+						value: 'mt4',
+					},
+					{
+						name: 'MT5',
+						value: 'mt5',
+					},
+				],
+				default: 'mt5',
+				description: 'Account type',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Is Real Account',
+				name: 'is_real',
+				type: 'boolean',
+				required: true,
+				default: true,
+				description: 'Whether this is a real account (true) or demo account (false)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Dealer',
+				name: 'dealer',
+				type: 'options',
+				required: true,
+				default: '',
+				description: 'Select the dealer/broker',
+				typeOptions: {
+					loadOptionsMethod: 'getDealers',
+				},
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Server',
+				name: 'server',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'Server name',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Capital Type',
+				name: 'capital_type',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'USD (Dollar)',
+						value: 'usd',
+					},
+					{
+						name: 'Cent',
+						value: 'cent',
+					},
+				],
+				default: 'usd',
+				description: 'Capital type',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Max Leverage',
+				name: 'max_lever',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: '1:2',
+						value: '1:2',
+					},
+					{
+						name: '1:20',
+						value: '1:20',
+					},
+					{
+						name: '1:50',
+						value: '1:50',
+					},
+					{
+						name: '1:100',
+						value: '1:100',
+					},
+					{
+						name: '1:200',
+						value: '1:200',
+					},
+					{
+						name: '1:400',
+						value: '1:400',
+					},
+					{
+						name: '1:500',
+						value: '1:500',
+					},
+					{
+						name: '1:800',
+						value: '1:800',
+					},
+					{
+						name: '1:1000',
+						value: '1:1000',
+					},
+					{
+						name: '1:2000',
+						value: '1:2000',
+					},
+					{
+						name: '1:无限',
+						value: '1:无限',
+					},
+				],
+				default: '1:100',
+				description: 'Maximum leverage',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'View Password',
+				name: 'view_password',
+				type: 'string',
+				default: '',
+				description: 'View password (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Risk',
+				name: 'risk',
+				type: 'number',
+				required: true,
+				default: 100,
+				description: 'Risk value - maximum loss percentage that can be tolerated (not a percentage)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Time Zone',
+				name: 'time_zone',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'UTC',
+						value: 'UTC',
+					},
+					{
+						name: 'Europe/Moscow',
+						value: 'Europe/Moscow',
+					},
+					{
+						name: 'Asia/Shanghai',
+						value: 'Asia/Shanghai',
+					},
+					{
+						name: 'America/New_York',
+						value: 'America/New_York',
+					},
+					{
+						name: 'Asia/Tokyo',
+						value: 'Asia/Tokyo',
+					},
+					{
+						name: 'Africa/Cairo',
+						value: 'Africa/Cairo',
+					},
+					{
+						name: 'America/Los_Angeles',
+						value: 'America/Los_Angeles',
+					},
+				],
+				default: 'UTC',
+				description: 'Time zone',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Status',
+				name: 'status',
+				type: 'boolean',
+				required: true,
+				default: true,
+				description: 'Account status - true (active) or false (inactive)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			{
+				displayName: 'Note',
+				name: 'note',
+				type: 'string',
+				default: '',
+				description: 'Note (optional)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['updateAccount'],
+					},
+				},
+			},
+			// 删除量化账户的参数
+			{
+				displayName: 'Account to Delete',
+				name: 'deleteAccountId',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'ID of the quantitative account to delete (account must be inactive to delete)',
+				displayOptions: {
+					show: {
+						resource: ['quantAccount'],
+						operation: ['deleteAccount'],
+					},
+				},
+			},
 		],
 	};
 
@@ -645,7 +1411,63 @@ export class MyPetStocks implements INodeType {
 					return accounts;
 				} catch (error) {
 					// 如果获取账户列表失败，返回空数组
-					console.error('Failed to load accounts:', error);
+					return [];
+				}
+			},
+			async getDealers(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				try {
+					// 获取凭据
+					const credentials = await this.getCredentials('myPetStocksApi');
+					let authToken: string;
+
+					if (credentials.authMethod === 'token') {
+						authToken = credentials.token as string;
+					} else {
+						// 使用用户名密码获取 token
+						const loginResponse = await this.helpers.httpRequest.call(this, {
+							method: 'POST',
+							url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+							body: {
+								username: credentials.username,
+								password: credentials.password,
+							},
+							json: true,
+						});
+
+						if (loginResponse.code !== 0) {
+							throw new Error(`Authentication failed: ${loginResponse.message}`);
+						}
+
+						authToken = loginResponse.result.token;
+					}
+
+					// 获取券商列表
+					const response = await this.helpers.httpRequest.call(this, {
+						method: 'GET',
+						url: `${credentials.baseUrl}/api/v1/portal/stock/dealer/`,
+						headers: {
+							'Authorization': authToken,
+							'Content-Type': 'application/json',
+						},
+						json: true,
+					});
+
+					if (response.code !== 0) {
+						throw new Error(`Failed to fetch dealers: ${response.message}`);
+					}
+
+					// 格式化券商选项
+					const dealers: INodePropertyOptions[] = response.result.results.map((dealer: unknown) => {
+						const d = dealer as Record<string, unknown>;
+						return {
+							name: d.name as string,
+							value: (d.id as number).toString(),
+						};
+					});
+
+					return dealers;
+				} catch (error) {
+					// 如果获取券商列表失败，返回空数组
 					return [];
 				}
 			},
@@ -1289,6 +2111,245 @@ export class MyPetStocks implements INodeType {
 									isReal: filterIsReal || null,
 								},
 							} as IDataObject,
+							pairedItem: { item: i },
+						});
+					}
+				} else if (resource === 'quantAccount') {
+					// 获取凭据和认证
+					const credentials = await this.getCredentials('myPetStocksApi');
+					let authToken: string;
+
+					if (credentials.authMethod === 'token') {
+						authToken = credentials.token as string;
+					} else {
+						// 使用用户名密码获取 token
+						const loginResponse = await this.helpers.httpRequest.call(this, {
+							method: 'POST',
+							url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+							body: {
+								username: credentials.username,
+								password: credentials.password,
+							},
+							json: true,
+						});
+
+						if (loginResponse.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Authentication failed: ${loginResponse.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						authToken = loginResponse.result.token;
+					}
+
+					if (operation === 'getAllAccounts') {
+						// 获取查询参数
+						const pageNum = this.getNodeParameter('pageNum', i) as number;
+						const pageSize = this.getNodeParameter('pageSize', i) as number;
+						const name = this.getNodeParameter('name', i) as string;
+						const accountId = this.getNodeParameter('accountId', i) as string;
+						const account_type = this.getNodeParameter('account_type', i) as string;
+						const is_real = this.getNodeParameter('is_real', i) as string;
+						const status = this.getNodeParameter('status', i) as string;
+
+						// 构建查询参数
+						const queryParams: Record<string, string> = {};
+						if (pageNum) queryParams.pageNum = pageNum.toString();
+						if (pageSize) queryParams.pageSize = pageSize.toString();
+						if (name) queryParams.name = name;
+						if (accountId) queryParams.accountId = accountId;
+						if (account_type) queryParams.account_type = account_type;
+						if (is_real) queryParams.is_real = is_real;
+						if (status) queryParams.status = status;
+
+						// 构建查询字符串
+						const queryString = Object.keys(queryParams)
+							.map(key => `${encodeURIComponent(key)}=${encodeURIComponent(queryParams[key])}`)
+							.join('&');
+						const url = `${credentials.baseUrl}/api/v1/portal/stock/account/${queryString ? '?' + queryString : ''}`;
+
+						// 发送请求
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'GET',
+							url: url,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							json: true,
+						});
+
+						if (response.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Query failed: ${response.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						returnData.push({
+							json: {
+								message: response.message,
+								code: response.code,
+								pagination: {
+									totalCount: response.result.count,
+									nextPage: response.result.next,
+									previousPage: response.result.previous,
+								},
+								accounts: response.result.results,
+								queryParams: queryParams,
+							},
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'createAccount') {
+						// 获取创建参数
+						const name = this.getNodeParameter('name', i) as string;
+						const accountId = this.getNodeParameter('accountId', i) as string;
+						const account_type = this.getNodeParameter('account_type', i) as string;
+						const is_real = this.getNodeParameter('is_real', i) as boolean;
+						const dealer = this.getNodeParameter('dealer', i) as number;
+						const server = this.getNodeParameter('server', i) as string;
+						const capital_type = this.getNodeParameter('capital_type', i) as string;
+						const max_lever = this.getNodeParameter('max_lever', i) as string;
+						const view_password = this.getNodeParameter('view_password', i) as string;
+						const risk = this.getNodeParameter('risk', i) as number;
+						const time_zone = this.getNodeParameter('time_zone', i) as string;
+						const status = this.getNodeParameter('status', i) as boolean;
+						const note = this.getNodeParameter('note', i) as string;
+
+						// 构建请求体
+						const requestBody: Record<string, unknown> = {
+							name,
+							accountId,
+							account_type,
+							is_real,
+							dealer,
+							server,
+							capital_type,
+							max_lever,
+							risk,
+							time_zone,
+							status,
+						};
+
+						if (view_password) requestBody.view_password = view_password;
+						if (note) requestBody.note = note;
+
+						// 发送创建请求
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'POST',
+							url: `${credentials.baseUrl}/api/v1/portal/stock/account/`,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							body: requestBody,
+							json: true,
+						});
+
+						if (response.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Create failed: ${response.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						returnData.push({
+							json: {
+								message: response.message,
+								code: response.code,
+								account: response.result,
+							},
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'updateAccount') {
+						// 获取更新参数
+						const updateAccountId = this.getNodeParameter('updateAccountId', i) as string;
+						const name = this.getNodeParameter('name', i) as string;
+						const accountId = this.getNodeParameter('accountId', i) as string;
+						const account_type = this.getNodeParameter('account_type', i) as string;
+						const is_real = this.getNodeParameter('is_real', i) as boolean;
+						const dealer = this.getNodeParameter('dealer', i) as number;
+						const server = this.getNodeParameter('server', i) as string;
+						const capital_type = this.getNodeParameter('capital_type', i) as string;
+						const max_lever = this.getNodeParameter('max_lever', i) as string;
+						const view_password = this.getNodeParameter('view_password', i) as string;
+						const risk = this.getNodeParameter('risk', i) as number;
+						const time_zone = this.getNodeParameter('time_zone', i) as string;
+						const status = this.getNodeParameter('status', i) as boolean;
+						const note = this.getNodeParameter('note', i) as string;
+
+						// 构建请求体
+						const requestBody: Record<string, unknown> = {
+							name,
+							accountId,
+							account_type,
+							is_real,
+							dealer,
+							server,
+							capital_type,
+							max_lever,
+							risk,
+							time_zone,
+							status,
+						};
+
+						if (view_password) requestBody.view_password = view_password;
+						if (note) requestBody.note = note;
+
+						// 发送更新请求
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'PUT',
+							url: `${credentials.baseUrl}/api/v1/portal/stock/account/${updateAccountId}/`,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							body: requestBody,
+							json: true,
+						});
+
+						if (response.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Update failed: ${response.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						returnData.push({
+							json: {
+								message: response.message,
+								code: response.code,
+								account: response.result,
+							},
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'deleteAccount') {
+						// 获取删除参数
+						const deleteAccountId = this.getNodeParameter('deleteAccountId', i) as string;
+
+						// 发送删除请求
+						await this.helpers.httpRequest.call(this, {
+							method: 'DELETE',
+							url: `${credentials.baseUrl}/api/v1/portal/stock/account/${deleteAccountId}/`,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							json: true,
+						});
+
+						// 删除成功通常返回204状态码，没有响应体
+						returnData.push({
+							json: {
+								message: 'Account deleted successfully',
+								accountId: deleteAccountId,
+								success: true,
+							},
 							pairedItem: { item: i },
 						});
 					}

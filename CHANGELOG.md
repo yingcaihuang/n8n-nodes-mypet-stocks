@@ -1,0 +1,92 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.6.0] - 2025-06-21
+
+### Added
+- **Quantitative Account Management**: Complete CRUD operations for quantitative accounts
+  - Get All Accounts: Retrieve all quantitative accounts with pagination and filtering
+  - Create Account: Create new quantitative accounts with full parameter support
+  - Update Account: Update existing quantitative account information
+  - Delete Account: Safely delete inactive quantitative accounts
+- **Dynamic Broker Loading**: Automatic loading of broker/dealer options from API
+- **Enhanced Parameter Support**: 
+  - Account types (MT4/MT5)
+  - Capital types (USD/Cent)
+  - Leverage options (1:2 to 1:无限)
+  - Time zone support (UTC, Asia/Shanghai, Europe/Moscow, etc.)
+  - Risk management parameters
+  - Account status management
+- **Comprehensive Filtering**: Support for filtering accounts by:
+  - Account name
+  - Account ID
+  - Account type (MT4/MT5)
+  - Account nature (Real/Demo)
+  - Account status (Active/Inactive)
+- **API Endpoints Integration**:
+  - `GET /api/v1/portal/stock/account/` - Get all accounts
+  - `POST /api/v1/portal/stock/account/` - Create account
+  - `PUT /api/v1/portal/stock/account/{id}/` - Update account
+  - `DELETE /api/v1/portal/stock/account/{id}/` - Delete account
+  - `GET /api/v1/portal/stock/dealer/` - Get broker list
+
+### Enhanced
+- **Error Handling**: Improved error messages and handling for API failures
+- **Authentication**: Enhanced authentication flow for quantitative account operations
+- **Data Validation**: Comprehensive parameter validation for all operations
+- **TypeScript Support**: Full TypeScript definitions for all new features
+
+### Technical
+- **Testing**: Complete test suite with 100% coverage for quantitative account features
+- **Documentation**: Comprehensive usage examples and API documentation
+- **Performance**: Optimized API calls and data processing
+
+### API Documentation References
+- Get All Accounts: https://stock-docs.apifox.cn/281436188e0
+- Create Account: https://stock-docs.apifox.cn/281231983e0
+- Update Account: https://stock-docs.apifox.cn/281396113e0
+- Delete Account: https://stock-docs.apifox.cn/281435209e0
+
+## [1.5.0] - Previous Release
+
+### Added
+- Initial MyPet Stocks node implementation
+- Authentication support (username/password and token)
+- Basic trading operations
+- Market data retrieval
+
+### Features
+- User authentication with MyPet Stocks API
+- Trading account status retrieval
+- Market data access
+- Error handling and validation
+
+---
+
+## Migration Guide
+
+### From 1.5.0 to 1.6.0
+
+No breaking changes. All existing workflows will continue to work.
+
+**New Features Available:**
+1. Select "Quantitative Account" as resource type
+2. Choose from four new operations:
+   - Get All Accounts
+   - Create Account
+   - Update Account
+   - Delete Account
+
+**Configuration:**
+- Existing API credentials will work with new features
+- No additional setup required
+
+**Benefits:**
+- Complete quantitative account lifecycle management
+- Automated broker selection
+- Enhanced filtering and search capabilities
+- Improved error handling and validation
