@@ -5,6 +5,7 @@ import {
 	INodeTypeDescription,
 	NodeOperationError,
 	NodeConnectionType,
+	IDataObject,
 } from 'n8n-workflow';
 
 export class MyPetStocks implements INodeType {
@@ -700,8 +701,6 @@ export class MyPetStocks implements INodeType {
 						// 获取请求参数
 						const accountId = this.getNodeParameter('accountId', i) as number;
 						const scope = this.getNodeParameter('scope', i) as string;
-						const startTime = this.getNodeParameter('startTime', i) as string;
-						const endTime = this.getNodeParameter('endTime', i) as string;
 
 						// 构建请求体
 						const requestBody: {
@@ -716,6 +715,9 @@ export class MyPetStocks implements INodeType {
 
 						// 如果是自定义时间范围，添加开始和结束时间
 						if (scope === 'custom') {
+							const startTime = this.getNodeParameter('startTime', i) as string;
+							const endTime = this.getNodeParameter('endTime', i) as string;
+
 							if (!startTime || !endTime) {
 								throw new NodeOperationError(
 									this.getNode(),
@@ -747,31 +749,54 @@ export class MyPetStocks implements INodeType {
 							);
 						}
 
-						returnData.push({
-							json: {
-								message: response.message,
-								code: response.code,
-								accountId: accountId,
-								scope: scope,
-								timeRange: scope === 'custom' ? { startTime, endTime } : null,
-								total: response.result.total || null,
-								details: response.result.detail || [],
-								summary: {
-									totalRecords: response.result.detail ? response.result.detail.length : 0,
-									scopeDescription: (() => {
-										const scopeMap: Record<string, string> = {
-											'all': 'All Time',
-											'day': 'Daily',
-											'week': 'Weekly',
-											'month': 'Monthly',
-											'quarter': 'Quarterly',
-											'year': 'Yearly',
-											'custom': 'Custom Range'
-										};
-										return scopeMap[scope] || scope;
-									})(),
-								},
+						// 构建返回数据
+						const resultData: {
+							message: string;
+							code: number;
+							accountId: number;
+							scope: string;
+							timeRange: { startTime: string; endTime: string } | null;
+							total: unknown;
+							details: unknown[];
+							summary: {
+								totalRecords: number;
+								scopeDescription: string;
+							};
+						} = {
+							message: response.message,
+							code: response.code,
+							accountId: accountId,
+							scope: scope,
+							timeRange: null,
+							total: response.result.total || null,
+							details: response.result.detail || [],
+							summary: {
+								totalRecords: response.result.detail ? response.result.detail.length : 0,
+								scopeDescription: (() => {
+									const scopeMap: Record<string, string> = {
+										'all': 'All Time',
+										'day': 'Daily',
+										'week': 'Weekly',
+										'month': 'Monthly',
+										'quarter': 'Quarterly',
+										'year': 'Yearly',
+										'custom': 'Custom Range'
+									};
+									return scopeMap[scope] || scope;
+								})(),
 							},
+						};
+
+						// 如果是自定义范围，添加时间范围信息
+						if (scope === 'custom' && requestBody.start_time && requestBody.end_time) {
+							resultData.timeRange = {
+								startTime: requestBody.start_time,
+								endTime: requestBody.end_time
+							};
+						}
+
+						returnData.push({
+							json: resultData as IDataObject,
 							pairedItem: { item: i },
 						});
 					}
