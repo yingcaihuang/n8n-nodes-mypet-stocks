@@ -16,6 +16,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ### Trading
 - **Get Market Data**: Retrieve market data for trading analysis
+- **Commission Statistics** ✨ NEW: Comprehensive commission analysis and statistics
 
 ### Quantitative Account Management ✨ NEW
 - **Get All Accounts**: Retrieve all quantitative accounts with pagination and filtering support
@@ -87,6 +88,30 @@ This node requires MyPet Stocks API credentials. You can authenticate using eith
   "risk": 100,
   "time_zone": "Asia/Shanghai",
   "status": true
+}
+```
+
+#### Commission Statistics
+```json
+{
+  "resource": "trading",
+  "operation": "getCommissionStatistics",
+  "scope": "month",
+  "accounts": ["1", "2", "3"],
+  "capital_type": "usd"
+}
+```
+
+#### Custom Time Range Commission Statistics
+```json
+{
+  "resource": "trading",
+  "operation": "getCommissionStatistics",
+  "scope": "custom",
+  "accounts": ["1", "2"],
+  "capital_type": "usd",
+  "start_time": "2025-04-01",
+  "end_time": "2025-04-30"
 }
 ```
 

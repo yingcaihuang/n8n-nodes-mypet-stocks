@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2025-06-21
+
+### Added
+- **Commission Statistics**: New trading operation for comprehensive commission analysis
+  - Multiple time scope options (all time, today, yesterday, week, month, custom range)
+  - Multi-account selection with dynamic loading
+  - Support for USD and Cent commission units
+  - Detailed commission breakdown by account and day
+  - Card-style summary information display
+- **Enhanced Trading Operations**: Expanded trading resource with commission analytics
+- **API Integration**: New endpoint `/api/v1/portal/stock/commissionStat/` integration
+
+### Enhanced
+- **Account Selection**: Improved multi-account selection interface
+- **Data Visualization**: Rich data structure for commission analytics
+- **Parameter Validation**: Comprehensive validation for custom date ranges
+- **Error Handling**: Enhanced error messages for commission statistics operations
+
+### Technical
+- **Testing**: Complete test suite for commission statistics functionality
+- **Documentation**: Comprehensive usage guide and examples
+- **API Documentation**: Reference to https://stock-docs.apifox.cn/281863262e0
+
 ## [1.6.0] - 2025-06-21
 
 ### Added

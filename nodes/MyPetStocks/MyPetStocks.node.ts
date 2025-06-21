@@ -126,6 +126,12 @@ export class MyPetStocks implements INodeType {
 						description: 'Get real-time trading status for all accounts',
 						action: 'Get account trading status',
 					},
+					{
+						name: 'Commission Statistics',
+						value: 'getCommissionStatistics',
+						description: 'Get commission statistics for selected accounts',
+						action: 'Get commission statistics',
+					},
 				],
 				default: 'getMarketData',
 			},
@@ -614,6 +620,128 @@ export class MyPetStocks implements INodeType {
 					show: {
 						resource: ['trading'],
 						operation: ['getAccountTradingStatus'],
+					},
+				},
+			},
+			// 佣金统计参数配置
+			{
+				displayName: 'Time Scope',
+				name: 'scope',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'All Time',
+						value: 'all',
+					},
+					{
+						name: 'Today',
+						value: 'today',
+					},
+					{
+						name: 'Yesterday',
+						value: 'yesterday',
+					},
+					{
+						name: 'This Week',
+						value: 'week',
+					},
+					{
+						name: 'Last Week',
+						value: 'last_week',
+					},
+					{
+						name: 'This Month',
+						value: 'month',
+					},
+					{
+						name: 'Last Month',
+						value: 'last_month',
+					},
+					{
+						name: 'Custom Range',
+						value: 'custom',
+					},
+				],
+				default: 'all',
+				description: 'Time scope for commission statistics',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getCommissionStatistics'],
+					},
+				},
+			},
+			{
+				displayName: 'Accounts',
+				name: 'accounts',
+				type: 'multiOptions',
+				required: true,
+				default: [],
+				description: 'Select quantitative accounts for commission statistics',
+				typeOptions: {
+					loadOptionsMethod: 'getAccounts',
+				},
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getCommissionStatistics'],
+					},
+				},
+			},
+			{
+				displayName: 'Capital Type',
+				name: 'capital_type',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'USD (Dollar)',
+						value: 'usd',
+					},
+					{
+						name: 'Cent',
+						value: 'cent',
+					},
+				],
+				default: 'usd',
+				description: 'Commission unit type',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getCommissionStatistics'],
+					},
+				},
+			},
+			{
+				displayName: 'Start Date',
+				name: 'start_time',
+				type: 'string',
+				required: true,
+				default: '',
+				placeholder: '2025-04-01',
+				description: 'Start date for custom time range (YYYY-MM-DD format)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getCommissionStatistics'],
+						scope: ['custom'],
+					},
+				},
+			},
+			{
+				displayName: 'End Date',
+				name: 'end_time',
+				type: 'string',
+				required: true,
+				default: '',
+				placeholder: '2025-04-30',
+				description: 'End date for custom time range (YYYY-MM-DD format)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getCommissionStatistics'],
+						scope: ['custom'],
 					},
 				},
 			},
@@ -2111,6 +2239,109 @@ export class MyPetStocks implements INodeType {
 									isReal: filterIsReal || null,
 								},
 							} as IDataObject,
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'getCommissionStatistics') {
+						// 获取凭据
+						const credentials = await this.getCredentials('myPetStocksApi');
+						if (!credentials) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'No credentials found for MyPet Stocks API',
+								{ itemIndex: i }
+							);
+						}
+
+						// 首先获取认证 token
+						let authToken: string;
+
+						if (credentials.authMethod === 'token') {
+							authToken = credentials.token as string;
+						} else {
+							// 使用用户名密码获取 token
+							const loginResponse = await this.helpers.httpRequest.call(this, {
+								method: 'POST',
+								url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+								body: {
+									username: credentials.username,
+									password: credentials.password,
+								},
+								json: true,
+							});
+
+							if (loginResponse.code !== 0) {
+								throw new NodeOperationError(
+									this.getNode(),
+									`Authentication failed: ${loginResponse.message}`,
+									{ itemIndex: i }
+								);
+							}
+
+							authToken = loginResponse.result.token;
+						}
+
+						// 获取佣金统计参数
+						const scope = this.getNodeParameter('scope', i) as string;
+						const accounts = this.getNodeParameter('accounts', i) as string[];
+						const capital_type = this.getNodeParameter('capital_type', i) as string;
+						const start_time = this.getNodeParameter('start_time', i) as string;
+						const end_time = this.getNodeParameter('end_time', i) as string;
+
+						// 构建请求体
+						const requestBody: Record<string, unknown> = {
+							scope,
+							accounts: accounts.map(id => parseInt(id, 10)), // 转换为数字数组
+							capital_type,
+						};
+
+						// 如果是自定义时间范围，添加开始和结束时间
+						if (scope === 'custom') {
+							if (!start_time || !end_time) {
+								throw new NodeOperationError(
+									this.getNode(),
+									'Start time and end time are required for custom scope',
+									{ itemIndex: i }
+								);
+							}
+							requestBody.start_time = start_time;
+							requestBody.end_time = end_time;
+						}
+
+						// 发送佣金统计请求
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'POST',
+							url: `${credentials.baseUrl}/api/v1/portal/stock/commissionStat/`,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							body: requestBody,
+							json: true,
+						});
+
+						if (response.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Commission statistics query failed: ${response.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						returnData.push({
+							json: {
+								message: response.message,
+								code: response.code,
+								cardInfo: response.result.card_info,
+								commissionDetail: response.result.commission_detail,
+								commissionDayDetail: response.result.commission_day_detail,
+								queryParams: {
+									scope,
+									accounts,
+									capital_type,
+									start_time: scope === 'custom' ? start_time : null,
+									end_time: scope === 'custom' ? end_time : null,
+								},
+							},
 							pairedItem: { item: i },
 						});
 					}
