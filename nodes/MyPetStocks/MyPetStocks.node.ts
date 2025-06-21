@@ -101,6 +101,12 @@ export class MyPetStocks implements INodeType {
 						description: 'Query trading orders with various filters',
 						action: 'Query trade orders',
 					},
+					{
+						name: 'Get Account Trading Details',
+						value: 'getAccountTradingDetails',
+						description: 'Get detailed trading statistics for a specific account',
+						action: 'Get account trading details',
+					},
 				],
 				default: 'getMarketData',
 			},
@@ -323,8 +329,101 @@ export class MyPetStocks implements INodeType {
 					},
 				},
 			},
+			// 账户交易详情参数
+			{
+				displayName: 'Account ID',
+				name: 'accountId',
+				type: 'number',
+				required: true,
+				default: '',
+				description: 'Quantitative account ID to query',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingDetails'],
+					},
+				},
+			},
+			{
+				displayName: 'Time Scope',
+				name: 'scope',
+				type: 'options',
+				required: true,
+				options: [
+					{
+						name: 'All Time',
+						value: 'all',
+					},
+					{
+						name: 'Daily',
+						value: 'day',
+					},
+					{
+						name: 'Weekly',
+						value: 'week',
+					},
+					{
+						name: 'Monthly',
+						value: 'month',
+					},
+					{
+						name: 'Quarterly',
+						value: 'quarter',
+					},
+					{
+						name: 'Yearly',
+						value: 'year',
+					},
+					{
+						name: 'Custom Range',
+						value: 'custom',
+					},
+				],
+				default: 'all',
+				description: 'Time scope for the trading details query',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingDetails'],
+					},
+				},
+			},
+			{
+				displayName: 'Start Date',
+				name: 'startTime',
+				type: 'string',
+				required: true,
+				default: '',
+				placeholder: '2025-04-01',
+				description: 'Start date for custom time range (YYYY-MM-DD format)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingDetails'],
+						scope: ['custom'],
+					},
+				},
+			},
+			{
+				displayName: 'End Date',
+				name: 'endTime',
+				type: 'string',
+				required: true,
+				default: '',
+				placeholder: '2025-04-30',
+				description: 'End date for custom time range (YYYY-MM-DD format)',
+				displayOptions: {
+					show: {
+						resource: ['trading'],
+						operation: ['getAccountTradingDetails'],
+						scope: ['custom'],
+					},
+				},
+			},
 		],
 	};
+
+
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
@@ -549,6 +648,129 @@ export class MyPetStocks implements INodeType {
 								orderInfo: response.result.results.order_info,
 								queryParams: queryParams,
 								authToken: authToken.substring(0, 30) + '...', // 显示部分 token 用于调试
+							},
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'getAccountTradingDetails') {
+						// 获取凭据
+						const credentials = await this.getCredentials('myPetStocksApi');
+						if (!credentials) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'No credentials found for MyPet Stocks API',
+								{ itemIndex: i }
+							);
+						}
+
+						// 首先获取认证 token
+						let authToken: string;
+
+						if (credentials.authMethod === 'token' && credentials.token) {
+							// 如果已经有 token，直接使用
+							authToken = `Bearer ${credentials.token}`;
+						} else if (credentials.authMethod === 'credentials') {
+							// 使用用户名密码获取 token
+							const loginResponse = await this.helpers.httpRequest.call(this, {
+								method: 'POST',
+								url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+								body: {
+									username: credentials.username,
+									password: credentials.password,
+								},
+								json: true,
+							});
+
+							if (loginResponse.code !== 0) {
+								throw new NodeOperationError(
+									this.getNode(),
+									`Authentication failed: ${loginResponse.message}`,
+									{ itemIndex: i }
+								);
+							}
+
+							authToken = loginResponse.result.token;
+						} else {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Invalid authentication method. Please use either username/password or token.',
+								{ itemIndex: i }
+							);
+						}
+
+						// 获取请求参数
+						const accountId = this.getNodeParameter('accountId', i) as number;
+						const scope = this.getNodeParameter('scope', i) as string;
+						const startTime = this.getNodeParameter('startTime', i) as string;
+						const endTime = this.getNodeParameter('endTime', i) as string;
+
+						// 构建请求体
+						const requestBody: {
+							account_id: number;
+							scope: string;
+							start_time?: string;
+							end_time?: string;
+						} = {
+							account_id: accountId,
+							scope: scope,
+						};
+
+						// 如果是自定义时间范围，添加开始和结束时间
+						if (scope === 'custom') {
+							if (!startTime || !endTime) {
+								throw new NodeOperationError(
+									this.getNode(),
+									'Start time and end time are required for custom scope',
+									{ itemIndex: i }
+								);
+							}
+							requestBody.start_time = startTime;
+							requestBody.end_time = endTime;
+						}
+
+						// 发送请求
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'POST',
+							url: `${credentials.baseUrl}/api/v1/portal/stock/accountStatDetail/`,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							body: requestBody,
+							json: true,
+						});
+
+						if (response.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Query failed: ${response.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						returnData.push({
+							json: {
+								message: response.message,
+								code: response.code,
+								accountId: accountId,
+								scope: scope,
+								timeRange: scope === 'custom' ? { startTime, endTime } : null,
+								total: response.result.total || null,
+								details: response.result.detail || [],
+								summary: {
+									totalRecords: response.result.detail ? response.result.detail.length : 0,
+									scopeDescription: (() => {
+										const scopeMap: Record<string, string> = {
+											'all': 'All Time',
+											'day': 'Daily',
+											'week': 'Weekly',
+											'month': 'Monthly',
+											'quarter': 'Quarterly',
+											'year': 'Yearly',
+											'custom': 'Custom Range'
+										};
+										return scopeMap[scope] || scope;
+									})(),
+								},
 							},
 							pairedItem: { item: i },
 						});
