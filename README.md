@@ -1,4 +1,31 @@
 # n8n-nodes-mypet-stocks
+# n8n-nodes-mypet-stocks
+
+## 🌟 English Description
+
+A powerful n8n integration node for MyPet Stocks quantitative trading system. This node enables seamless connection to MyPet's comprehensive trading API, allowing you to automate trading operations, manage quantitative accounts, and track commission statistics within your n8n workflows.
+
+### Key Features:
+- **Secure Authentication**: Multiple authentication methods including username/password and Bearer token
+- **Trading Operations**: Execute trades, monitor markets, and retrieve real-time data
+- **Account Management**: Complete CRUD operations for quantitative accounts with MT4/MT5 support
+- **Commission Tracking**: Analyze commission statistics across multiple accounts and time periods
+- **Broker Integration**: Connect with various brokers and dealers through a unified interface
+
+Perfect for financial automation, algorithmic trading systems, and comprehensive trading analytics.
+
+## 🌟 中文描述
+
+强大的 MyPet Stocks 量化交易系统 n8n 集成节点。此节点可无缝连接到 MyPet 全面的交易 API，使您能够在 n8n 工作流中自动执行交易操作、管理量化账户并跟踪佣金统计。
+
+### 主要特点：
+- **安全认证**：支持多种认证方式，包括用户名/密码和 Bearer 令牌
+- **交易操作**：执行交易、监控市场和获取实时数据
+- **账户管理**：支持 MT4/MT5 的量化账户完整 CRUD 操作
+- **佣金跟踪**：跨多个账户和时间段分析佣金统计
+- **经纪商集成**：通过统一接口连接各种经纪商和交易商
+
+非常适合金融自动化、算法交易系统和全面的交易分析。
 
 This is an n8n community node for the MyPet Stocks quantitative trading system with comprehensive account management capabilities.
 
