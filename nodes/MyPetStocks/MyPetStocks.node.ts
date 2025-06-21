@@ -6,6 +6,8 @@ import {
 	NodeOperationError,
 	NodeConnectionType,
 	IDataObject,
+	ILoadOptionsFunctions,
+	INodePropertyOptions,
 } from 'n8n-workflow';
 
 export class MyPetStocks implements INodeType {
@@ -338,12 +340,15 @@ export class MyPetStocks implements INodeType {
 			},
 			// 账户交易详情参数
 			{
-				displayName: 'Account ID',
+				displayName: 'Account',
 				name: 'accountId',
-				type: 'number',
+				type: 'options',
 				required: true,
 				default: '',
-				description: 'Quantitative account ID to query',
+				description: 'Select the trading account to query',
+				typeOptions: {
+					loadOptionsMethod: 'getAccounts',
+				},
 				displayOptions: {
 					show: {
 						resource: ['trading'],
@@ -430,7 +435,79 @@ export class MyPetStocks implements INodeType {
 		],
 	};
 
+	methods = {
+		loadOptions: {
+			async getAccounts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				try {
+					// 获取凭据
+					const credentials = await this.getCredentials('myPetStocksApi');
+					let authToken: string;
 
+					if (credentials.authMethod === 'token') {
+						authToken = credentials.token as string;
+					} else {
+						// 使用用户名密码获取 token
+						const loginResponse = await this.helpers.httpRequest.call(this, {
+							method: 'POST',
+							url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+							body: {
+								username: credentials.username,
+								password: credentials.password,
+							},
+							json: true,
+						});
+
+						if (loginResponse.code !== 0) {
+							throw new Error(`Authentication failed: ${loginResponse.message}`);
+						}
+
+						authToken = loginResponse.result.token;
+					}
+
+					// 获取账户列表
+					const response = await this.helpers.httpRequest.call(this, {
+						method: 'GET',
+						url: `${credentials.baseUrl}/api/v1/portal/stock/account/`,
+						headers: {
+							'Authorization': authToken,
+							'Content-Type': 'application/json',
+						},
+						json: true,
+					});
+
+					if (response.code !== 0) {
+						throw new Error(`Failed to fetch accounts: ${response.message}`);
+					}
+
+					// 格式化账户选项
+					const accounts: INodePropertyOptions[] = response.result.results.map((account: unknown) => {
+						const acc = account as Record<string, unknown>;
+						const statusIcon = acc.status ? '✅活跃' : '❌停用';
+						const typeIcon = acc.is_real ? '🔴真实' : '🟡模拟';
+						const displayName = `${acc.accountId} -- ${acc.name} -- ${acc.account_type_name} ${acc.dealername} -- ${statusIcon} -- ${typeIcon}`;
+
+						return {
+							name: displayName,
+							value: (acc.id as number).toString(), // 使用数据库ID作为值
+						};
+					});
+
+					// 按账户ID排序
+					accounts.sort((a: INodePropertyOptions, b: INodePropertyOptions) => {
+						const aAccountId = parseInt((a.name as string).split(' -- ')[0]);
+						const bAccountId = parseInt((b.name as string).split(' -- ')[0]);
+						return aAccountId - bAccountId;
+					});
+
+					return accounts;
+				} catch (error) {
+					// 如果获取账户列表失败，返回空数组
+					console.error('Failed to load accounts:', error);
+					return [];
+				}
+			},
+		},
+	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
