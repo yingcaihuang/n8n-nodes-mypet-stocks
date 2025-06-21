@@ -108,6 +108,12 @@ export class MyPetStocks implements INodeType {
 						description: 'Get detailed trading statistics for a specific account',
 						action: 'Get account trading details',
 					},
+					{
+						name: 'List Accounts',
+						value: 'listAccounts',
+						description: 'Get list of available trading accounts',
+						action: 'List trading accounts',
+					},
 				],
 				default: 'getMarketData',
 			},
@@ -797,6 +803,99 @@ export class MyPetStocks implements INodeType {
 
 						returnData.push({
 							json: resultData as IDataObject,
+							pairedItem: { item: i },
+						});
+					} else if (operation === 'listAccounts') {
+						// 获取凭据和认证
+						const credentials = await this.getCredentials('myPetStocksApi');
+						let authToken: string;
+
+						if (credentials.authMethod === 'token') {
+							authToken = credentials.token as string;
+						} else {
+							// 使用用户名密码获取 token
+							const loginResponse = await this.helpers.httpRequest.call(this, {
+								method: 'POST',
+								url: `${credentials.baseUrl}/api/v1/portal/dashlogin/`,
+								body: {
+									username: credentials.username,
+									password: credentials.password,
+								},
+								json: true,
+							});
+
+							if (loginResponse.code !== 0) {
+								throw new NodeOperationError(
+									this.getNode(),
+									`Authentication failed: ${loginResponse.message}`,
+									{ itemIndex: i }
+								);
+							}
+
+							authToken = loginResponse.result.token;
+						}
+
+						// 获取账户列表
+						const response = await this.helpers.httpRequest.call(this, {
+							method: 'GET',
+							url: `${credentials.baseUrl}/api/v1/portal/stock/account/`,
+							headers: {
+								'Authorization': authToken,
+								'Content-Type': 'application/json',
+							},
+							json: true,
+						});
+
+						if (response.code !== 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Query failed: ${response.message}`,
+								{ itemIndex: i }
+							);
+						}
+
+						// 格式化账户列表数据
+						const accounts = response.result.results.map((account: unknown) => {
+							const acc = account as Record<string, unknown>;
+							return {
+								id: acc.id,
+								accountId: acc.accountId,
+								name: acc.name,
+								accountType: acc.account_type_name,
+								capitalType: acc.capital_type_name,
+								dealerName: acc.dealername,
+								server: acc.server,
+								maxLever: acc.max_lever,
+								isReal: acc.is_real,
+								status: acc.status,
+								note: acc.note,
+								addTime: acc.add_time,
+								modTime: acc.mod_time,
+							};
+						});
+
+						returnData.push({
+							json: {
+								message: response.message,
+								code: response.code,
+								totalCount: response.result.count,
+								accounts: accounts,
+								summary: {
+									totalAccounts: accounts.length,
+									activeAccounts: accounts.filter((acc: unknown) => {
+										const account = acc as Record<string, unknown>;
+										return account.status;
+									}).length,
+									realAccounts: accounts.filter((acc: unknown) => {
+										const account = acc as Record<string, unknown>;
+										return account.isReal;
+									}).length,
+									demoAccounts: accounts.filter((acc: unknown) => {
+										const account = acc as Record<string, unknown>;
+										return !account.isReal;
+									}).length,
+								},
+							} as IDataObject,
 							pairedItem: { item: i },
 						});
 					}
