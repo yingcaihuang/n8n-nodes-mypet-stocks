@@ -46,10 +46,12 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ### Authentication
 - **Get Token**: Authenticate using username and password to get a Bearer token
-- **Test Connection**: Test the API connection with current credentials
 
 ### Trading
-- **Get Market Data**: Retrieve market data for trading analysis
+- **Query Trade Orders**: Query trading orders with comprehensive filtering options
+- **Get Account Trading Details**: Get detailed trading statistics for specific accounts
+- **List Accounts**: Get list of available trading accounts
+- **Get Account Trading Status**: Get real-time trading status for all accounts
 - **Commission Statistics** ✨ NEW: Comprehensive commission analysis and statistics
 
 ### Quantitative Account Management ✨ NEW
@@ -87,8 +89,8 @@ This node requires MyPet Stocks API credentials. You can authenticate using eith
    - For token: Enter your Bearer token (without "Bearer " prefix)
 3. Add the MyPet Stocks node to your workflow
 4. Select the desired resource:
-   - **Authentication**: For login and connection testing
-   - **Trading**: For market data and trading operations
+   - **Authentication**: For login operations
+   - **Trading**: For trading operations and commission statistics
    - **Quantitative Account**: For account management operations
 5. Choose the operation and configure parameters as needed
 

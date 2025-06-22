@@ -76,12 +76,6 @@ export class MyPetStocks implements INodeType {
 						description: 'Get authentication token using username and password',
 						action: 'Get authentication token',
 					},
-					{
-						name: 'Test Connection',
-						value: 'testConnection',
-						description: 'Test the API connection with current credentials',
-						action: 'Test API connection',
-					},
 				],
 				default: 'getToken',
 			},
@@ -96,12 +90,6 @@ export class MyPetStocks implements INodeType {
 					},
 				},
 				options: [
-					{
-						name: 'Get Market Data',
-						value: 'getMarketData',
-						description: 'Get market data for trading',
-						action: 'Get market data',
-					},
 					{
 						name: 'Query Trade Orders',
 						value: 'queryTradeOrders',
@@ -133,7 +121,7 @@ export class MyPetStocks implements INodeType {
 						action: 'Get commission statistics',
 					},
 				],
-				default: 'getMarketData',
+				default: 'queryTradeOrders',
 			},
 			{
 				displayName: 'Operation',
@@ -1653,65 +1641,9 @@ export class MyPetStocks implements INodeType {
 							},
 							pairedItem: { item: i },
 						});
-					} else if (operation === 'testConnection') {
-						// 获取凭据
-						const credentials = await this.getCredentials('myPetStocksApi');
-						if (!credentials) {
-							throw new NodeOperationError(
-								this.getNode(),
-								'No credentials found for MyPet Stocks API',
-								{ itemIndex: i }
-							);
-						}
-
-						// 测试连接 - 这里可以调用一个简单的API端点来验证连接
-						const response = await this.helpers.httpRequestWithAuthentication.call(
-							this,
-							'myPetStocksApi',
-							{
-								method: 'GET',
-								url: `${credentials.baseUrl}/api/v1/test`, // 假设有一个测试端点
-								json: true,
-							}
-						);
-
-						returnData.push({
-							json: {
-								status: 'success',
-								message: 'Connection test successful',
-								response,
-							},
-							pairedItem: { item: i },
-						});
 					}
 				} else if (resource === 'trading') {
-					if (operation === 'getMarketData') {
-						// 获取凭据
-						const credentials = await this.getCredentials('myPetStocksApi');
-						if (!credentials) {
-							throw new NodeOperationError(
-								this.getNode(),
-								'No credentials found for MyPet Stocks API',
-								{ itemIndex: i }
-							);
-						}
-
-						// 这里添加获取市场数据的逻辑
-						const response = await this.helpers.httpRequestWithAuthentication.call(
-							this,
-							'myPetStocksApi',
-							{
-								method: 'GET',
-								url: `${credentials.baseUrl}/api/v1/market/data`, // 假设的市场数据端点
-								json: true,
-							}
-						);
-
-						returnData.push({
-							json: response,
-							pairedItem: { item: i },
-						});
-					} else if (operation === 'queryTradeOrders') {
+					if (operation === 'queryTradeOrders') {
 						// 获取凭据
 						const credentials = await this.getCredentials('myPetStocksApi');
 						if (!credentials) {
@@ -2284,8 +2216,17 @@ export class MyPetStocks implements INodeType {
 						const scope = this.getNodeParameter('scope', i) as string;
 						const accounts = this.getNodeParameter('accounts', i) as string[];
 						const capital_type = this.getNodeParameter('capital_type', i) as string;
-						const start_time = this.getNodeParameter('start_time', i) as string;
-						const end_time = this.getNodeParameter('end_time', i) as string;
+						const start_time = this.getNodeParameter('start_time', i, '') as string;
+						const end_time = this.getNodeParameter('end_time', i, '') as string;
+
+						// 验证必需参数
+						if (!accounts || accounts.length === 0) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'At least one account must be selected',
+								{ itemIndex: i }
+							);
+						}
 
 						// 构建请求体
 						const requestBody: Record<string, unknown> = {
